@@ -11,4 +11,4 @@ RUN python create_db.py
 
 EXPOSE 5000
 
-CMD ["python", "vulnerable_flask_app.py"]
+CMD ["python", "-c", "from vulnerable_flask_app import app; app.run(host='0.0.0.0', port=5000, debug=True)"]
