@@ -28,7 +28,7 @@ pipeline {
                 sh 'docker network rm $ZAP_NETWORK || true'
                 sh 'docker network create $ZAP_NETWORK'
                 sh 'docker rm -f $CONTAINER_NAME || true'
-                sh 'docker run -d --name $CONTAINER_NAME --network $ZAP_NETWORK $IMAGE_NAME:$BUILD_NUMBER'
+                sh 'docker run -d --name $CONTAINER_NAME --network $ZAP_NETWORK -p 5000:5000 $IMAGE_NAME:$BUILD_NUMBER'
                 sh 'sleep 10'
             }
         }
@@ -36,11 +36,7 @@ pipeline {
         stage('Security - OWASP ZAP') {
             steps {
                 echo 'Etapa Security: ejecutando OWASP ZAP Baseline Scan...'
-                sh '''
-                    APP_IP=$(docker exec securedev-app hostname -i)
-                    echo "IP de la aplicacion: $APP_IP"
-                    docker run --rm --network zap-audit ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://${APP_IP}:5000 -I || true
-                '''
+                sh 'docker run --rm --network $ZAP_NETWORK ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://securedev-app:5000 -I || true'
             }
         }
     }
