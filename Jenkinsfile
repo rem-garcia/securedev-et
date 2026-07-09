@@ -37,7 +37,7 @@ pipeline {
             steps {
                 echo 'Etapa Security: ejecutando OWASP ZAP Baseline Scan...'
                 sh '''
-                    APP_IP=$(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" securedev-app)
+                    APP_IP=$(docker inspect securedev-app | grep -m1 '"IPAddress"' | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+')
                     echo "IP de la aplicacion: $APP_IP"
                     docker run --rm --network zap-audit ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://$APP_IP:5000 -I || true
                 '''
