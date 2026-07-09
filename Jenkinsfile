@@ -4,7 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME     = 'securedev-app'
         CONTAINER_NAME = 'securedev-app'
-        ZAP_NETWORK    = 'zap-audit'
     }
 
     stages {
@@ -25,10 +24,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Etapa Deploy: desplegando en entorno de prueba...'
-                sh 'docker network rm $ZAP_NETWORK || true'
-                sh 'docker network create $ZAP_NETWORK'
                 sh 'docker rm -f $CONTAINER_NAME || true'
-                sh 'docker run -d --name $CONTAINER_NAME --network $ZAP_NETWORK -p 5000:5000 $IMAGE_NAME:$BUILD_NUMBER'
+                sh 'docker run -d --name $CONTAINER_NAME -p 5000:5000 $IMAGE_NAME:$BUILD_NUMBER'
                 sh 'sleep 10'
             }
         }
@@ -36,7 +33,7 @@ pipeline {
         stage('Security - OWASP ZAP') {
             steps {
                 echo 'Etapa Security: ejecutando OWASP ZAP Baseline Scan...'
-                sh 'docker run --rm --network $ZAP_NETWORK ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://securedev-app:5000 -I || true'
+                sh 'docker run --rm --link securedev-app ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://securedev-app:5000 -I || true'
             }
         }
     }
