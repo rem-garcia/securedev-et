@@ -36,11 +36,11 @@ pipeline {
         stage('Security - OWASP ZAP') {
             steps {
                 echo 'Etapa Security: ejecutando OWASP ZAP Baseline Scan...'
-                script {
-                    def appIp = sh(script: "docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME", returnStdout: true).trim()
-                    echo "IP de la aplicacion: ${appIp}"
-                    sh "docker run --rm --network $ZAP_NETWORK ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://${appIp}:5000 -I || true"
-                }
+                sh '''
+                    APP_IP=$(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" securedev-app)
+                    echo "IP de la aplicacion: $APP_IP"
+                    docker run --rm --network zap-audit ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://$APP_IP:5000 -I || true
+                '''
             }
         }
     }
